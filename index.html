@@ -7,7 +7,8 @@
 
 </head>
 <style>
-
+    
+    
 </style>
 
 <body>
@@ -98,6 +99,90 @@
 
 
 <script>
+const API= 'https://www.themealdb.com/api/json/v1/1';
+let currentUser= null,
+    favourites= {},
+    currentMeal= null;
+
+
+function openLogin(){
+    document.getElementById('loginoverlay').classList.add('open');
+    document.getElementById('loginerror').style.display='none';
+}
+
+function closeLogin(e){
+    if (e.target===document.getElementById('loginoverlay'))
+        document.getElementById('loginoverlay').classList.remove('open');
+}
+
+function doLogin(){
+    const u=document.getElementById('loginuser').value.trim().toLowerCase();
+    const p=document.getElementById('loginpass').value.trim();
+    if ((u==='bob@mail.com')&& p==='bobpass')
+    {
+        document.getElementById('loginoverlay').classList.remove('open');
+        syncNav();
+        toast('Welcome back Bob!');
+        showFavs();
+    }
+    else{
+        document.getElementById('loginerror').style.display='block';
+    }
+}
+
+function logout(){
+    currentUser= null;
+    syncNav();
+    switchTab('search');
+}
+
+function syncNav(){
+    const in_=!!currentUser;
+
+    document.getElementById('btnlogin').style.display=in_?'none':'';
+    document.getElementById('btnfavs').style.display=in_?'none':'';
+    document.getElementById('btnlogout').style.display=in_?'none':'';
+}
+
+function getFavs(){
+    return favourites[currentUser]||[];
+}
+
+function isFav(id){
+    return getFavs().includes(String(id));
+}
+
+function toggleFav(id,name){
+    if (!currentuser)
+    {
+        openLogin();
+        return false;
+    }
+
+    const list= getFavs();
+    const index = list.indexOf(String(id));
+    if (index === -1) 
+    { 
+        list.push(String(id)); 
+        toast(`Saved "${name}"`);
+    }
+    else 
+    { 
+        list.splice(index, 1); 
+        toast(`Removed "${name}"`); 
+    }
+
+    favorites[currentUser] = list;
+    localStorage.setItem('favorites',JSON.stringify(favorites));
+    return index === -1;
+}
+
+function showFavorites()
+{
+    switchTab('favs');
+}
+
+
 
 </script>
 
