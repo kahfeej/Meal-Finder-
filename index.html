@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title> The Recipe Vault </title>
+    <title>  </title>
 
 </head>
 <style>
@@ -12,11 +12,89 @@
 
 <body>
 <nav>
-    <div class="logo"> Recipe Vault </div>
+    <div class="logo"> </div>
     <div class="navtab">
-        <button class="btn-primary" id="btnlogin" onclick="openLogin()"
+        <button class="btn-primary" id="btnlogin" onclick="openLogin()">Login</button>
+        <button class="btn-secondary" id="btnfav" onclick="showFav()">Favourites</button>
+        <button class="btn-secondary" id="btnlogout" onclick="logout()">Logout</button>
     </div>
 </nav>
+
+<section id="hero">
+    <h1>Your next meal starts here</h1>
+    <h4>Discover recipes made simple </h4>
+    <div class="search">
+        <input type="text" id="searchinput" placeholder="Search by meal or ingredient" oninput="debounceSearch"/>
+        <button class="btn-secondary" id="btnsearch" onclick="doSearch()">Search</button>
+    </div>
+    <div class="filterrow">
+        <span class="btncatactive" onclick="setFilter('', this)">All</span>
+        <span class="btncat" onclick="setFilter('Beef', this)">Beef</span>
+        <span class="btncat" onclick="setFilter('Chicken', this)">Chicken</span>
+        <span class="btncat" onclick="setFilter('Seafood', this)">Seafood</span>
+        <span class="btncat" onclick="setFilter('Vegetarian', this)">Vegetarian</span>
+        <span class="btncat" onclick="setFilter('Dessert', this)">Dessert</span>
+    </div>
+</section>
+
+<main class="mainsection">
+    <div class="tabs" id="maintabs">
+        <button class="tabactive" id="tabsearch" onclick="switchTab(search)">Results</button>
+        <button class="tab" id="tabfavs" onclick="switchTab(favs)">My Favourites</button>
+    </div>
+    <div id="panelsearch">
+        <div class="section-title">Popular Recipes</div>
+        <div class="grid" id="results-grid">
+            <div class="spinner"></div>
+        </div>
+    </div>
+    <div id="panelfavs">
+       <div class="section-title">My Saved Recipes</div>
+        <div class="grid" id="favs-grid"></div> 
+    </div>
+</main>
+
+<div class="overlay" id="detailoverlay" onclick="closeDetails(event)">
+    <div class="modal" id="detailmodal">
+        <img id="img" class="modalimg" src="" alt=""/>
+        <div class="modalbody">
+            <button class="modalclose" onclick="closeDetailBtn()">✕</button>
+            <h2 id="dname"></h2>
+            <span class="badge" id="dcategory"></span>
+            <h3>Ingredients</h3>
+            <div class="ingredients" id="d-ingredients"></div>
+            <h3>Instructions</h3>
+            <p class="instructions" id="d-instructions"></p>
+            <div class="savefav">
+                <button class="btn-primary" id="dfav-btn" onclick="saveFavFromDetail()">Save to Favourites</button>
+                <span id="dglass"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="loginoverlay" onclick="closeLogin(event)">
+    <div class="modal" id="loginmodal">
+        <div class="modalbody">
+            <button class="modalclose" onclick="document.getElementById('loginoverlay').classList.remove('open')">✕</button>
+            <h2>Welcome Back</h2>
+            <div class="loginform">
+                <label>
+                    Email
+                    <input type="text" id="loginuser" placeholder="bob@mail.com"/>
+                </label>
+                <label>
+                    Password
+                    <input type="text" id="loginpass" placeholder="bobpass"/>
+                </label>
+                <p class="loginerror" id="loginerror">Invalid information</p>
+                <button class="btn-primary" onclick="doLogin()">Login</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast">Saved</div>
 
 <script>
 
