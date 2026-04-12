@@ -103,8 +103,13 @@
 <script>
 const API= 'https://www.themealdb.com/api/json/v1/1';
 let currentUser= null,
-    favourites= {},
-    currentMeal= null;
+    favourites= JSON.parse(localStorage.getItem('favourites')) ||{},
+    currentMeal= null,
+    searchTimer= null,
+    activeFilter='';
+
+const search = 'search';
+const favs = 'favs';
 
 
 function openLogin(){
@@ -125,7 +130,7 @@ function doLogin(){
         document.getElementById('loginoverlay').classList.remove('open');
         syncNav();
         toast('Welcome back Bob!');
-        showFavs();
+        showFav();
     }
     else{
         document.getElementById('loginerror').style.display='block';
@@ -142,7 +147,7 @@ function syncNav(){
     const in_=!!currentUser;
 
     document.getElementById('btnlogin').style.display=in_?'none':'';
-    document.getElementById('btnfavs').style.display=in_?'none':'';
+    document.getElementById('btnfav').style.display=in_?'none':'';
     document.getElementById('btnlogout').style.display=in_?'none':'';
 }
 
@@ -155,7 +160,7 @@ function isFav(id){
 }
 
 function toggleFav(id,name){
-    if (!currentuser)
+    if (!currentUser)
     {
         openLogin();
         return false;
@@ -174,44 +179,56 @@ function toggleFav(id,name){
         toast(`Removed "${name}"`); 
     }
 
-    favorites[currentUser] = list;
+    favourites[currentUser] = list;
     localStorage.setItem('favorites',JSON.stringify(favorites));
     return index === -1;
 }
 
-function showFavorites()
+function showFav()
 {
     switchTab('favs');
 }
 
 function switchTab(tab) {
-  document.getElementById('panel-search').style.display = tab === 'search' ? '' : 'none';
-  document.getElementById('panel-favs').style.display  = tab === 'favs'   ? '' : 'none';
-  document.getElementById('tab-search').classList.toggle('active', tab === 'search');
-  document.getElementById('tab-favs').classList.toggle('active', tab === 'favs');
-  if (tab === 'favs') renderFavs();
+  document.getElementById('panelsearch').style.display = tab === 'search' ? '' : 'none';
+  document.getElementById('panelfavs').style.display  = tab === 'favs'   ? '' : 'none';
+  document.getElementById('tabsearch').classList.toggle('active', tab === 'search');
+  document.getElementById('tabfavs').classList.toggle('active', tab === 'favs');
+  if (tab === 'search') {
+        searchTab.className = 'tabactive';
+        favsTab.className = 'tab';
+    } 
+    else {
+        searchTab.className = 'tab';
+        favsTab.className = 'tabactive';
+    }
+
+    if (tab === 'favs') {
+        renderFavs();
+    }
 }
 
-/* ─────────────────────────────────────────────
-   SEARCH
-───────────────────────────────────────────── */
 function debounceSearch() {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(doSearch, 400);
 }
 function setFilter(val, el) {
   activeFilter = val;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  doSearch();
+  document.querySelectorAll('.filterrow span').forEach((span) => {
+        span.className = 'btncat';
+    });
+
+    el.className = 'btncatactive';
+    doSearch();
 }
+
 async function doSearch() {
-  const q = document.getElementById('search-input').value.trim();
+  const q = document.getElementById('searchinput').value.trim();
   const grid = document.getElementById('results-grid');
   grid.innerHTML = '<div class="spinner"></div>';
 
-  document.getElementById('panel-search').querySelector('.section-title').textContent =
-    q ? `Results for "${q}"` : 'Popular Recipes';
+  document.querySelector('#panelsearch .section-title').textContent =
+        q ? `Results for "${q}"` : 'Popular Recipes';
 
   let meals = [];
 
@@ -230,7 +247,8 @@ async function doSearch() {
         letters.map(l => fetch(`${API}/search.php?f=${l}`).then(r => r.json()))
       );
       results.forEach(r => {
-        if (r.meals) meals.push(...r.meals);
+        if (r.meals) 
+            meals.push(...r.meals);
       });
     }
 
@@ -253,12 +271,14 @@ async function doSearch() {
 
   renderGrid(meals, grid);
 }
-/* ─────────────────────────────────────────────
-   RENDER
-───────────────────────────────────────────── */
+
 function renderGrid(meals, container) {
   if (!meals || meals.length === 0) {
-    container.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="icon">🍽️</div><p>No meals found. Try a different search.</p></div>`;
+    container.innerHTML = 
+    `<div class="empty" style="grid-column:1/-1"><
+        div class="icon">🍽️</div>
+        <p>No meals found. Try a different search.</p>
+    </div>`;
     return;
   }
   container.innerHTML = meals.slice(0, 40).map(m => cardHTML(m)).join('');
@@ -286,23 +306,29 @@ function handleFav(id, name, btn) {
   if (added === false && !currentUser) return;
   btn.classList.toggle('active', added);
   btn.textContent = added ? '❤ Saved' : '♡ Save';
-  if (document.getElementById('panel-favs').style.display !== 'none') renderFavs();
+  if (document.getElementById('panelfavs').style.display !== 'none') 
+    renderFavs();
 }
 
-/* ─────────────────────────────────────────────
-   FAVORITES PANEL
-───────────────────────────────────────────── */
 async function renderFavs() {
   const grid = document.getElementById('favs-grid');
   const ids = getFavs();
 
   if (!currentUser) {
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="icon">🔒</div><p>Login to see your favorites.</p></div>`;
+    grid.innerHTML = 
+    `<div class="empty" style="grid-column:1/-1">
+        <div class="icon">🔒</div>
+        <p>Login to see your favorites.</p>
+    </div>`;
     return;
   }
 
   if (ids.length === 0) {
-    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="icon">❤</div><p>No favorites yet. Save some recipes!</p></div>`;
+    grid.innerHTML = 
+    `<div class="empty" style="grid-column:1/-1">
+        <div class="icon">❤</div>
+        <p>No favorites yet. Save some recipes!</p>
+    </div>`;
     return;
   }
 
@@ -318,15 +344,14 @@ async function renderFavs() {
 
   renderGrid(meals.filter(Boolean), grid);
 }
-/* ─────────────────────────────────────────────
-   DETAIL MODAL
-───────────────────────────────────────────── */
+
 async function openDetail(id) {
-  document.getElementById('detail-overlay').classList.add('open');
-  document.getElementById('d-name').textContent = 'Loading…';
-  document.getElementById('d-img').src = '';
+  document.getElementById('detailoverlay').classList.add('open');
+  document.getElementById('dname').textContent = 'Loading…';
+  document.getElementById('img').src = '';
   document.getElementById('d-ingredients').innerHTML = '';
   document.getElementById('d-instructions').textContent = '';
+  document.getElementById('dglass').textContent = '';
 
   const data = await fetch(`${API}/lookup.php?i=${id}`).then(r => r.json());
   const m = data.meals?.[0];
@@ -334,10 +359,9 @@ async function openDetail(id) {
 
   currentMeal = m;
 
-  document.getElementById('d-img').src = m.strMealThumb;
-  document.getElementById('d-name').textContent = m.strMeal;
-  document.getElementById('d-category').textContent = `${m.strCategory || ''} ${m.strArea ? '· ' + m.strArea : ''}`;
-  document.getElementById('d-glass').textContent = '';
+  document.getElementById('img').src = m.strMealThumb;
+  document.getElementById('dname').textContent = m.strMeal;
+  document.getElementById('dcategory').textContent = `${m.strCategory || ''} ${m.strArea ? '· ' + m.strArea : ''}`;
   document.getElementById('d-instructions').textContent = m.strInstructions || '';
 
   const ingHtml = [];
@@ -351,11 +375,48 @@ async function openDetail(id) {
 
   document.getElementById('d-ingredients').innerHTML = ingHtml.join('');
 
-  const btn = document.getElementById('d-fav-btn');
+  const btn = document.getElementById('dfav-btn');
   btn.textContent = isFav(m.idMeal) ? '❤ Saved' : '♡ Save to Favorites';
-  btn.classList.toggle('btn-ghost', isFav(m.idMeal));
+}
+  
+function closeDetails(e) 
+{
+    if (e.target === document.getElementById('detailoverlay')) {
+        document.getElementById('detailoverlay').classList.remove('open');
+    }
 }
 
+function closeDetailBtn() {
+    document.getElementById('detailoverlay').classList.remove('open');
+}
+
+function saveFavFromDetail() {
+    if (!currentMeal) return;
+
+    const added = toggleFav(currentMeal.idMeal, currentMeal.strMeal);
+    if (added === false && !currentUser) return;
+
+    document.getElementById('dfav-btn').textContent =
+        isFav(currentMeal.idMeal) ? '❤ Saved' : '♡ Save to Favourites';
+
+    if (document.getElementById('panelfavs').style.display !== 'none') {
+        renderFavs();
+    }
+}
+
+function toast(message) {
+    const toastBox = document.getElementById('toast');
+    toastBox.textContent = message;
+    toastBox.classList.add('show');
+
+    setTimeout(() => {
+        toastBox.classList.remove('show');
+    }, 2000);
+}
+
+syncNav();
+switchTab('search');
+doSearch();
 
 </script>
 
