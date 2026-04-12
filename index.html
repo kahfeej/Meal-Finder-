@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>  </title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff7043">
 
 </head>
 <style>
@@ -25,7 +27,7 @@
     <h1>Your next meal starts here</h1>
     <h4>Discover recipes made simple </h4>
     <div class="search">
-        <input type="text" id="searchinput" placeholder="Search by meal or ingredient" oninput="debounceSearch"/>
+        <input type="text" id="searchinput" placeholder="Search by meal or ingredient" oninput="debounceSearch()"/>
         <button class="btn-secondary" id="btnsearch" onclick="doSearch()">Search</button>
     </div>
     <div class="filterrow">

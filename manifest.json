@@ -1,6 +1,6 @@
 {
-    "name": "",
-    "short_name": "",
+    "name": "Meal Finder",
+    "short_name": "Meal Find",
     "description": "Discover recipes made simple",
     "start_url": "/index.html",
     "display": "standalone",
@@ -16,7 +16,7 @@
         },
         {
             "src" : "https://www.themealdb.com/images/media/meals/llcbn01574260722.jpg",
-            "sizes": "192x192",
+            "sizes": "512x512",
             "type": "image/jpeg" 
         }
     ],
