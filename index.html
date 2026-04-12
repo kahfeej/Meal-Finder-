@@ -133,7 +133,7 @@
         padding: 3.5rem 2.5rem;
         text-align: center;
         background: var(--surface);
-        border-radius: var(--radius-lg);
+        border-radius: var(--radius-1g);
         box-shadow: var(--shadow);
     }
 
@@ -187,7 +187,7 @@
         color: #2d2419;
     }
 
-    #btnsearch-hover:{
+    #btnsearch:hover{
         background: var(--accent-hover);
     }
 
@@ -201,7 +201,7 @@
     }
 
     .btncat,
-    .btncatactivate{
+    .btncatactive{
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -218,12 +218,13 @@
     }
    
     .btncat:hover{
-        transform: translateY(-1px);
+        transform: translateY(-2px);
         box-shadow:0 6px 14px rgba(0,0,0,0.5)
     }
 
-    .btncatactivate{
+    .btncatactive{
         border-color: var(--accent);
+        box-shadow: 0 4px 10px rgba(227,171,47,0.2);
     }
     /*MAIN*/
     .mainsection{
@@ -244,7 +245,7 @@
         border: 1px solid var(--border);
         border-radius: 999px;
         cursor: pointer;
-        font-size: 0.95 rem;
+        font-size: 0.95rem;
         font-weight: 700;
         background: #fff;
         color: var(--text);
@@ -275,7 +276,7 @@
         border-radius: 18px;
         overflow: hidden;
         cursor: pointer;
-        box-shadow: 0 8px 20px (0,0,0,0.08);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         transition: 0.2s ease;
     }
 
@@ -337,7 +338,7 @@
         position: fixed;
         inset: 0;
         padding: 1rem;
-        background: regba(0,0,0,.55);
+        background: rgba(0,0,0,.55);
         justify-content: center;
         align-items: center;
     }
@@ -376,7 +377,6 @@
     .badge,.ingredient-tag{
         display: inline-block;
         border: 1px solid var(--border);
-    }
 
     .badge{
         padding: .35rem .85rem;
@@ -484,7 +484,7 @@
 </nav>
 
 <section id="hero">
-    <h1>Your next meal starts here</h1>
+    <h1>Your next <em>meal</em> starts here</h1>
     <h4>Discover recipes made simple </h4>
     <div class="search">
         <input type="text" id="searchinput" placeholder="Search by meal or ingredient" oninput="debounceSearch()"/>
@@ -492,11 +492,11 @@
     </div>
     <div class="filterrow">
         <span class="btncatactive" onclick="setFilter('', this)">All</span>
-        <span class="btncat" onclick="setFilter('Beef', this)">Beef</span>
-        <span class="btncat" onclick="setFilter('Chicken', this)">Chicken</span>
-        <span class="btncat" onclick="setFilter('Seafood', this)">Seafood</span>
-        <span class="btncat" onclick="setFilter('Vegetarian', this)">Vegetarian</span>
-        <span class="btncat" onclick="setFilter('Dessert', this)">Dessert</span>
+        <span class="btncat" onclick="setFilter('Beef', this)">🥩Beef</span>
+        <span class="btncat" onclick="setFilter('Chicken', this)">🍗Chicken</span>
+        <span class="btncat" onclick="setFilter('Seafood', this)">🦞Seafood</span>
+        <span class="btncat" onclick="setFilter('Vegetarian', this)">🥗Vegetarian</span>
+        <span class="btncat" onclick="setFilter('Dessert', this)">🍨Dessert</span>
     </div>
 </section>
 
