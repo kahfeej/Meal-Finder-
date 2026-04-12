@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>  </title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff7043">
 
 </head>
 <style>
@@ -485,7 +487,7 @@
     <h1>Your next meal starts here</h1>
     <h4>Discover recipes made simple </h4>
     <div class="search">
-        <input type="text" id="searchinput" placeholder="Search by meal or ingredient" oninput="debounceSearch"/>
+        <input type="text" id="searchinput" placeholder="Search by meal or ingredient" oninput="debounceSearch()"/>
         <button class="btn-secondary" id="btnsearch" onclick="doSearch()">Search</button>
     </div>
     <div class="filterrow">
@@ -561,8 +563,13 @@
 <script>
 const API= 'https://www.themealdb.com/api/json/v1/1';
 let currentUser= null,
-    favourites= {},
-    currentMeal= null;
+    favourites= JSON.parse(localStorage.getItem('favourites')) ||{},
+    currentMeal= null,
+    searchTimer= null,
+    activeFilter='';
+
+const search = 'search';
+const favs = 'favs';
 
 
 function openLogin(){
@@ -583,7 +590,7 @@ function doLogin(){
         document.getElementById('loginoverlay').classList.remove('open');
         syncNav();
         toast('Welcome back Bob!');
-        showFavs();
+        showFav();
     }
     else{
         document.getElementById('loginerror').style.display='block';
@@ -600,7 +607,7 @@ function syncNav(){
     const in_=!!currentUser;
 
     document.getElementById('btnlogin').style.display=in_?'none':'';
-    document.getElementById('btnfavs').style.display=in_?'none':'';
+    document.getElementById('btnfav').style.display=in_?'none':'';
     document.getElementById('btnlogout').style.display=in_?'none':'';
 }
 
@@ -613,7 +620,7 @@ function isFav(id){
 }
 
 function toggleFav(id,name){
-    if (!currentuser)
+    if (!currentUser)
     {
         openLogin();
         return false;
@@ -632,17 +639,244 @@ function toggleFav(id,name){
         toast(`Removed "${name}"`); 
     }
 
-    favorites[currentUser] = list;
+    favourites[currentUser] = list;
     localStorage.setItem('favorites',JSON.stringify(favorites));
     return index === -1;
 }
 
-function showFavorites()
+function showFav()
 {
     switchTab('favs');
 }
 
+function switchTab(tab) {
+  document.getElementById('panelsearch').style.display = tab === 'search' ? '' : 'none';
+  document.getElementById('panelfavs').style.display  = tab === 'favs'   ? '' : 'none';
+  document.getElementById('tabsearch').classList.toggle('active', tab === 'search');
+  document.getElementById('tabfavs').classList.toggle('active', tab === 'favs');
+  if (tab === 'search') {
+        searchTab.className = 'tabactive';
+        favsTab.className = 'tab';
+    } 
+    else {
+        searchTab.className = 'tab';
+        favsTab.className = 'tabactive';
+    }
 
+    if (tab === 'favs') {
+        renderFavs();
+    }
+}
+
+function debounceSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(doSearch, 400);
+}
+function setFilter(val, el) {
+  activeFilter = val;
+  document.querySelectorAll('.filterrow span').forEach((span) => {
+        span.className = 'btncat';
+    });
+
+    el.className = 'btncatactive';
+    doSearch();
+}
+
+async function doSearch() {
+  const q = document.getElementById('searchinput').value.trim();
+  const grid = document.getElementById('results-grid');
+  grid.innerHTML = '<div class="spinner"></div>';
+
+  document.querySelector('#panelsearch .section-title').textContent =
+        q ? `Results for "${q}"` : 'Popular Recipes';
+
+  let meals = [];
+
+  try {
+    if (q) {
+      const r1 = await fetch(`${API}/search.php?s=${encodeURIComponent(q)}`).then(r => r.json());
+      meals = r1.meals || [];
+
+      if (meals.length === 0) {
+        const r2 = await fetch(`${API}/filter.php?i=${encodeURIComponent(q)}`).then(r => r.json());
+        meals = r2.meals || [];
+      }
+    } else {
+      const letters = ['a', 'b', 'c', 'm', 's'];
+      const results = await Promise.all(
+        letters.map(l => fetch(`${API}/search.php?f=${l}`).then(r => r.json()))
+      );
+      results.forEach(r => {
+        if (r.meals) 
+            meals.push(...r.meals);
+      });
+    }
+
+    if (activeFilter) {
+      meals = meals.filter(m =>
+        (m.strCategory || '').toLowerCase() === activeFilter.toLowerCase()
+      );
+    }
+
+    const seen = new Set();
+    meals = meals.filter(m => {
+      if (seen.has(m.idMeal)) return false;
+      seen.add(m.idMeal);
+      return true;
+    });
+  } catch (e) {
+    console.error(e);
+    meals = [];
+  }
+
+  renderGrid(meals, grid);
+}
+
+function renderGrid(meals, container) {
+  if (!meals || meals.length === 0) {
+    container.innerHTML = 
+    `<div class="empty" style="grid-column:1/-1"><
+        div class="icon">🍽️</div>
+        <p>No meals found. Try a different search.</p>
+    </div>`;
+    return;
+  }
+  container.innerHTML = meals.slice(0, 40).map(m => cardHTML(m)).join('');
+}
+
+function cardHTML(m) {
+  const fav = isFav(m.idMeal);
+  return `
+  <div class="card" onclick="openDetail('${m.idMeal}')">
+    <img src="${m.strMealThumb}" alt="${m.strMeal}" loading="lazy" />
+    <div class="card-body">
+      <div class="card-name">${m.strMeal}</div>
+      <div class="card-meta">${m.strCategory || ''}</div>
+      <div class="card-actions">
+        <button class="fav-btn ${fav ? 'active' : ''}" onclick="event.stopPropagation();handleFav('${m.idMeal}','${m.strMeal.replace(/'/g, "\\'")}',this)">
+          ${fav ? '❤ Saved' : '♡ Save'}
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function handleFav(id, name, btn) {
+  const added = toggleFav(id, name);
+  if (added === false && !currentUser) return;
+  btn.classList.toggle('active', added);
+  btn.textContent = added ? '❤ Saved' : '♡ Save';
+  if (document.getElementById('panelfavs').style.display !== 'none') 
+    renderFavs();
+}
+
+async function renderFavs() {
+  const grid = document.getElementById('favs-grid');
+  const ids = getFavs();
+
+  if (!currentUser) {
+    grid.innerHTML = 
+    `<div class="empty" style="grid-column:1/-1">
+        <div class="icon">🔒</div>
+        <p>Login to see your favorites.</p>
+    </div>`;
+    return;
+  }
+
+  if (ids.length === 0) {
+    grid.innerHTML = 
+    `<div class="empty" style="grid-column:1/-1">
+        <div class="icon">❤</div>
+        <p>No favorites yet. Save some recipes!</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = '<div class="spinner"></div>';
+
+  const meals = await Promise.all(
+    ids.map(id =>
+      fetch(`${API}/lookup.php?i=${id}`)
+        .then(r => r.json())
+        .then(d => d.meals?.[0])
+    )
+  );
+
+  renderGrid(meals.filter(Boolean), grid);
+}
+
+async function openDetail(id) {
+  document.getElementById('detailoverlay').classList.add('open');
+  document.getElementById('dname').textContent = 'Loading…';
+  document.getElementById('img').src = '';
+  document.getElementById('d-ingredients').innerHTML = '';
+  document.getElementById('d-instructions').textContent = '';
+  document.getElementById('dglass').textContent = '';
+
+  const data = await fetch(`${API}/lookup.php?i=${id}`).then(r => r.json());
+  const m = data.meals?.[0];
+  if (!m) return;
+
+  currentMeal = m;
+
+  document.getElementById('img').src = m.strMealThumb;
+  document.getElementById('dname').textContent = m.strMeal;
+  document.getElementById('dcategory').textContent = `${m.strCategory || ''} ${m.strArea ? '· ' + m.strArea : ''}`;
+  document.getElementById('d-instructions').textContent = m.strInstructions || '';
+
+  const ingHtml = [];
+  for (let i = 1; i <= 20; i++) {
+    const ing = m[`strIngredient${i}`];
+    const mea = m[`strMeasure${i}`];
+    if (ing && ing.trim()) {
+      ingHtml.push(`<span class="ingredient-tag">${mea ? mea.trim() + ' ' : ''}${ing}</span>`);
+    }
+  }
+
+  document.getElementById('d-ingredients').innerHTML = ingHtml.join('');
+
+  const btn = document.getElementById('dfav-btn');
+  btn.textContent = isFav(m.idMeal) ? '❤ Saved' : '♡ Save to Favorites';
+}
+  
+function closeDetails(e) 
+{
+    if (e.target === document.getElementById('detailoverlay')) {
+        document.getElementById('detailoverlay').classList.remove('open');
+    }
+}
+
+function closeDetailBtn() {
+    document.getElementById('detailoverlay').classList.remove('open');
+}
+
+function saveFavFromDetail() {
+    if (!currentMeal) return;
+
+    const added = toggleFav(currentMeal.idMeal, currentMeal.strMeal);
+    if (added === false && !currentUser) return;
+
+    document.getElementById('dfav-btn').textContent =
+        isFav(currentMeal.idMeal) ? '❤ Saved' : '♡ Save to Favourites';
+
+    if (document.getElementById('panelfavs').style.display !== 'none') {
+        renderFavs();
+    }
+}
+
+function toast(message) {
+    const toastBox = document.getElementById('toast');
+    toastBox.textContent = message;
+    toastBox.classList.add('show');
+
+    setTimeout(() => {
+        toastBox.classList.remove('show');
+    }, 2000);
+}
+
+syncNav();
+switchTab('search');
+doSearch();
 
 </script>
 
