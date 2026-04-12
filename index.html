@@ -579,6 +579,7 @@ function doLogin(){
     const p=document.getElementById('loginpass').value.trim();
     if ((u==='bob@mail.com')&& p==='bobpass')
     {
+        currentUser= u;
         document.getElementById('loginoverlay').classList.remove('open');
         syncNav();
         toast('Welcome back Bob!');
@@ -644,8 +645,8 @@ function showFav()
 function switchTab(tab) {
   document.getElementById('panelsearch').style.display = tab === 'search' ? '' : 'none';
   document.getElementById('panelfavs').style.display  = tab === 'favs'   ? '' : 'none';
-  document.getElementById('tabsearch').classList.toggle('active', tab === 'search');
-  document.getElementById('tabfavs').classList.toggle('active', tab === 'favs');
+  const searchTab = document.getElementById('tabsearch');
+  const favsTab = document.getElementById('tabfavs');
   if (tab === 'search') {
         searchTab.className = 'tabactive';
         favsTab.className = 'tab';
@@ -727,8 +728,8 @@ async function doSearch() {
 function renderGrid(meals, container) {
   if (!meals || meals.length === 0) {
     container.innerHTML = 
-    `<div class="empty" style="grid-column:1/-1"><
-        div class="icon">🍽️</div>
+    `<div class="empty" style="grid-column:1/-1">
+        <div class="icon">🍽️</div>
         <p>No meals found. Try a different search.</p>
     </div>`;
     return;
