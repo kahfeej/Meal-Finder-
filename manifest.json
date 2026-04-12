@@ -2,22 +2,22 @@
     "name": "Meal Finder",
     "short_name": "Meal Find",
     "description": "Discover recipes made simple",
-    "start_url": "/index.html",
+    "start_url": "./index.html",
     "display": "standalone",
-    "background_color":"",
-    "theme_color": "",
+    "background_color":"#f6efe6",
+    "theme_color": "#e3ab2f",
     "orientation":"portrait-primary",
     "icons":
     [
         {
-            "src" : "https://www.themealdb.com/images/media/meals/llcbn01574260722.jpg",
+            "src" : "icons/mealfinderlogo192.png",
             "sizes": "192x192",
-            "type": "image/jpeg"
+            "type": "image/png"
         },
         {
-            "src" : "https://www.themealdb.com/images/media/meals/llcbn01574260722.jpg",
+            "src" : "icons/mealfinderlogo512.png",
             "sizes": "512x512",
-            "type": "image/jpeg" 
+            "type": "image/png" 
         }
     ],
 
