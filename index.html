@@ -579,6 +579,7 @@ function doLogin(){
     const p=document.getElementById('loginpass').value.trim();
     if ((u==='bob@mail.com')&& p==='bobpass')
     {
+        currentUser = 'bob'
         document.getElementById('loginoverlay').classList.remove('open');
         syncNav();
         toast('Welcome back Bob!');
@@ -599,8 +600,8 @@ function syncNav(){
     const in_=!!currentUser;
 
     document.getElementById('btnlogin').style.display=in_?'none':'';
-    document.getElementById('btnfav').style.display=in_?'none':'';
-    document.getElementById('btnlogout').style.display=in_?'none':'';
+    document.getElementById('btnfav').style.display=in_?'' : 'none';
+    document.getElementById('btnlogout').style.display=in_?'' : 'none';
 }
 
 function getFavs(){
@@ -620,6 +621,7 @@ function toggleFav(id,name){
 
     const list= getFavs();
     const index = list.indexOf(String(id));
+
     if (index === -1) 
     { 
         list.push(String(id)); 
@@ -632,7 +634,7 @@ function toggleFav(id,name){
     }
 
     favourites[currentUser] = list;
-    localStorage.setItem('favorites',JSON.stringify(favorites));
+    localStorage.setItem('favourites',JSON.stringify(favourites));
     return index === -1;
 }
 
@@ -642,23 +644,21 @@ function showFav()
 }
 
 function switchTab(tab) {
-  document.getElementById('panelsearch').style.display = tab === 'search' ? '' : 'none';
-  document.getElementById('panelfavs').style.display  = tab === 'favs'   ? '' : 'none';
-  document.getElementById('tabsearch').classList.toggle('active', tab === 'search');
-  document.getElementById('tabfavs').classList.toggle('active', tab === 'favs');
-  if (tab === 'search') {
-        searchTab.className = 'tabactive';
-        favsTab.className = 'tab';
-    } 
-    else {
-        searchTab.className = 'tab';
-        favsTab.className = 'tabactive';
-    }
+    const panelSearch = document.getElementById('panelsearch');
+    const panelFavs = document.getElementById('panelfavs');
+    const tabSearch = document.getElementById('tabsearch');
+    const tabFavs = document.getElementById('tabfavs');
 
-    if (tab === 'favs') {
+    panelSearch.style.display = tab === 'search' ? '':'none';
+    panelFavs.style.display = tab === 'favs' ? '' : 'none';
+
+    tabSearch.className = tab === 'search' ? 'tabactive' : 'tab';
+    tabFavs.className = tab === 'favs' ? 'tabactive' : 'tab';
+    
+    if (tab === 'favs'){
         renderFavs();
+        }
     }
-}
 
 function debounceSearch() {
   clearTimeout(searchTimer);
@@ -726,13 +726,14 @@ async function doSearch() {
 
 function renderGrid(meals, container) {
   if (!meals || meals.length === 0) {
-    container.innerHTML = 
-    `<div class="empty" style="grid-column:1/-1"><
-        div class="icon">🍽️</div>
+    container.innerHTML = `
+    <div class="empty" style="grid-column:1/-1">
+        <div class="icon">🍽️</div>
         <p>No meals found. Try a different search.</p>
     </div>`;
     return;
   }
+
   container.innerHTML = meals.slice(0, 40).map(m => cardHTML(m)).join('');
 }
 
